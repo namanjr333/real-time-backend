@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+python-multipart
+argon2-cffi
+python-jose[cryptography]
+websockets
+passlib
+aiofiles
+pydantic-settings
+psycopg2-binary
+alembic

@@ -1,0 +1,32 @@
+"""
+Local decrypt helper for PostNord Driver App v2 GCM payloads.
+Run this on your own machine — nothing is sent anywhere.
+
+Usage:
+    pip install pycryptodome
+    python decrypt_default_key.py
+"""
+import base64
+import json
+from Crypto.Cipher import AES
+
+# --- Default (bootstrap) key from the encryption spec, Section 5 ---
+DEFAULT_KEY_B64 = "9JXFZAN8qWUS7KVJxly+SYgafoMBQAmQaSaNpoxBezU="
+
+def decrypt_payload(payload_b64: str, key_b64: str = DEFAULT_KEY_B64) -> dict:
+    key = base64.b64decode(key_b64)
+    data = base64.b64decode(payload_b64)
+
+    nonce = data[:12]
+    tag = data[-16:]
+    ciphertext = data[12:-16]
+
+    cipher = AES.new(key, AES.MODE_GCM, nonce=nonce)
+    plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+    return json.loads(plaintext)
+
+if __name__ == "__main__":
+    # Paste the "Payload" value from RespBody here:
+    payload = input("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").strip()
+    result = decrypt_payload(payload)
+    print(json.dumps(result, indent=2))

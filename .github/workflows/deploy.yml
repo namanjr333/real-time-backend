@@ -1,0 +1,35 @@
+name: Deploy to Home Server
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Tailscale (auth key)
+        if: ${{ startsWith(secrets.TAILSCALE_AUTHKEY, 'tskey-auth-') }}
+        uses: tailscale/github-action@v2
+        with:
+          authkey: ${{ secrets.TAILSCALE_AUTHKEY }}
+
+      - name: Setup Tailscale (OAuth secret)
+        if: ${{ !startsWith(secrets.TAILSCALE_AUTHKEY, 'tskey-auth-') && secrets.TAILSCALE_AUTHKEY != '' }}
+        uses: tailscale/github-action@v2
+        with:
+          oauth-secret: ${{ secrets.TAILSCALE_AUTHKEY }}
+          tags: tag:ci
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 100.100.69.12
+          username: namanjr333
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/docker/chat
+            git pull origin master
+            docker compose build
+            docker compose up -d
+            echo "Deployed $(date)"

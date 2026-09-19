@@ -1,0 +1,41 @@
+services:
+  chat-backend:
+    build: .
+    container_name: chat-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      chat-db:
+        condition: service_healthy
+    networks:
+      - ghar-network
+
+  chat-db:
+    image: postgres:15-alpine
+    container_name: chat-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=chatuser
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=chatdb
+    volumes:
+      - chat-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatuser -d chatdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ghar-network
+
+volumes:
+  chat-db-data:
+
+networks:
+  ghar-network:
+    external: true
